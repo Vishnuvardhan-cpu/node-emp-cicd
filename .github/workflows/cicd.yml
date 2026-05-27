@@ -19,19 +19,23 @@ jobs:
         username: ${{ secrets.VM_USERNAME }}
         key: ${{ secrets.VM_SSH_KEY }}
         port: 22
-        script: |
+          script: |
           cd ~/node-emp-cicd
           echo "1. Pulling latest code from GitHub..."
           git pull origin main
 
-          echo "2. Pointing terminal to Minikube Docker..."
+          echo "2. Building Docker Image inside Minikube..."
+          # ఇక్కడ మనం డైరెక్ట్ గా మినికూబ్ లోపలికే ఇమేజ్ ని పంపుతున్నాం
           eval $(minikube -p minikube docker-env)
-
-          echo "3. Automatically building new Docker Image..."
           docker build -t vishnu-emp-app:latest .
 
-          echo "4. Automatically applying Kubernetes Manifests..."
+          echo "3. Resetting Docker path back to Normal..."
+          # ఇది మన టెర్మినల్ దారిని మళ్లీ నార్మల్ ఉబుంటు కి తిప్పుతుంది (దీనివల్ల నెట్‌వర్క్ ఎర్రర్ రాదు)
+          eval $(minikube -p minikube docker-env -u)
+
+          echo "4. Deploying Manifests..."
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
 
           echo "CI/CD Pipeline Completed Successfully! 🚀🔥"
+
