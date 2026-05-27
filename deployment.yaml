@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vishnu-cicd-deployment
+  labels:
+    app: cicd-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cicd-app
+  template:
+    metadata:
+      labels:
+        app: cicd-app
+    spec:
+      containers:
+      - name: cicd-container
+        image: vishnu-emp-app:latest # గిట్‌హబ్ రోబోట్ బిల్డ్ చేసే లేటెస్ట్ ఇమేజ్
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
