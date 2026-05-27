@@ -1,0 +1,39 @@
+name: Node App CI-CD Pipeline
+
+# 1. మనం ఎప్పుడు 'main' బ్రాంచ్‌కి కోడ్ పుష్ చేసినా ఈ పైప్‌లైన్ ఆటోమేటిక్‌గా ట్రిగ్గర్ అవ్వాలి
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # గiట్‌హబ్ క్లౌడ్‌లో ఒక ఉబుంటు రోబోట్ ఆన్ అవుతుంది
+
+    steps:
+    # Step 1: మన గిట్‌హబ్ రెపోలో ఉన్న కోడ్‌ను ఆ రోబోట్ లోపలికి తెచ్చుకోవడం
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # Step 2: గిట్‌హబ్ రోబోట్ లోపల డాకర్ ఎన్విరాన్‌మెంట్‌ను సెట్ చేయడం
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # Step 3: (టెస్టింగ్ కోసం) మన కోడ్ నుండి డాకర్ ఇమేజ్ పక్కాగా బిల్డ్ అవుతుందో లేదో రోబోట్ చెక్ చేస్తుంది
+    - name: Test Build Docker Image
+      run: |
+        docker build -t vishnu-emp-app:latest .
+        echo "Docker Image built successfully inside GitHub Runner! 🟢"
+
+    # Step 4: మన ఒరిజినల్ అజూర్ VM లోపలికి దూరి అక్కడ కమాండ్ రన్ చేయడం (The Magic Step)
+    - name: Deploy to Azure VM Kubernetes
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VM_HOST }}        # మీ అజూర్ VM పబ్లిక్ ఐపీ
+        username: ${{ secrets.VM_USERNAME }} # మీ VM యూజర్‌నేమ్ (azureuser)
+        key: ${{ secrets.VM_SSH_KEY }}       # మీ VM యొక్క సీక్రెట్ SSH Private Key (.pem ఫైల్ కోడ్)
+        port: 22
+        script: |
+          cd ~/node-emp-cicd
+          echo "Connected to Vishnu's Azure VM! 🚀"
+          # ఇక్కడ మనం నెక్స్ట్ స్టెప్‌లో రాయబోయే కూబెర్నెటీస్ కమాండ్స్ ఆటోమేటిక్‌గా రన్ అవుతాయి!
+          echo "Ready for Kubernetes deployment automation!"
